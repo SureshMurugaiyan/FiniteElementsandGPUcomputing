@@ -9,7 +9,7 @@ LIBDIR	=
 #CC	= g++
 #LD	= g++
 
-CC = mpic++
+CC = mpic++ 
 LD = mpic++
 
 # compiler flags to be used (set to compile with debugging on)
