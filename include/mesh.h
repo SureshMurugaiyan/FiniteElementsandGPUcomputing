@@ -6,9 +6,6 @@
 using namespace std;
 
 void mesh2Dsquare(double* X, double *Y, double *Z,
-                  double *XC, double *YC, double *ZC,
-                  double *X_HFC, double *Y_HFC, double *Z_HFC,
-                  double *X_VFC, double *Y_VFC, double *Z_VFC,
                   int nxc, int nyc,int nx, int ny, int nc){
 // North boundary
 const double xmin_n = -0.5;  // left  co-ordinate
@@ -238,25 +235,9 @@ double dy = length_e/nyc;
         }
     }
 
-for(int i=0; i<ny-1; i++){
-  for(int j=0; j<nx-1; j++){
-       XC[i*(nx-1)+j]= x_c[i][j];
-       YC[i*(nx-1)+j]= y_c[i][j];
-        }
-    }
 
-for(int i=0; i<ny; i++){
-  for(int j=0; j<nx-1; j++){
-       X_HFC[i*(nx-1)+j]= x_hfc[i][j];
-       Y_HFC[i*(nx-1)+j]= y_hfc[i][j];
-        }
-    }
 
-for(int i=0; i<ny-1; i++){
-  for(int j=0; j<nx; j++){
-       X_VFC[i*(nx)+j]= x_vfc[i][j];
-       Y_VFC[i*(nx)+j]= y_vfc[i][j];
-        }
-    }
+
+
 //END OF PROGRAM
 }
