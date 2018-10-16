@@ -18,7 +18,7 @@ for (int i = nc-nxc; i<nc; i++)
     ux[i]= 0;
     uy[i]= 0;
     p[i]= p[i-nxc];
-    
+
 }
 
 // West Boundary - Left end
