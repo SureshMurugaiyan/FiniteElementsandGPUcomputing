@@ -10,9 +10,6 @@
 #include "corrector.h"
 #include "printData.h"
 #include "updateCn.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include "mpi.h"
 
 using namespace std;
 
@@ -20,24 +17,23 @@ int main(int argc, char **argv)
 {
 //USER INPUT
 // Opposite boundaries should have equal number of points
-const int nxc = 64;      // number of cells in north and south boundary
-const int nyc = 64;      // number of cells in east and west boundary
-double Re = 100.0;         // User Input instead of material property
-double Co = 0.4; 	// Courant number
+const int nxc = 32;        // number of cells in north and south boundary
+const int nyc = 32;        // number of cells in east and west boundary
+double Re = 100.0;          // User Input instead of material property
 
-int noIteration=13000;
+const int nx  = nxc+1;      // number of grid points in x-direction
+const int ny  = nyc+1;      // number of grid points in y-direction
+const int nc  = nxc*nyc;    // total number of cells
+const int nv  = nx*ny;      // total number of vertices
 
 
-const int nx  = nxc+1; // number of grid points in x-direction
-const int ny  = nyc+1; // number of grid points in y-direction
-const int nc  = nxc*nyc; // total number of cells
+const int nyHfc = ny;         // centers of Horizontal coordinate lines // row
+const int nxHfc = nx-1;       // centers of Horizontal coordinate lines // column
+const int nHfc  = nxHfc*nyHfc;// total number of horizontal face centers
 
-const int nxHfc = nx;  // column // center of vertical lines
-const int nyHfc = ny-1; //row
-const int nHfc  = nxHfc*nyHfc;
-const int nxVfc = nx-1; // center of horizontal lines // column
-const int nyVfc = ny; // row
-const int nVfc  = nxVfc*nyVfc;
+const int nyVfc = ny-1;       // center of vertical coordinate lines  // row
+const int nxVfc = nx;         // center of vertical coordinate lines  // column
+const int nVfc  = nxVfc*nyVfc;// total number of vertical face centers
 
 double X[nx*ny];
 double Y[nx*ny];
@@ -46,10 +42,10 @@ double Z[nx*ny];
 mesh2Dsquare(X,Y,Z,nxc,nyc,nx,ny,nc);
 double dx = 1.0/nxc;
 double dy = 1.0/nyc;
-double dz = dx;
+double dz = 1.0; // For 2D unit depth
 
-double dt = 0.003; //Co*dx;
-double dV = dx*dy;
+double dt = 0.01;//Co*dx;
+double dV = dx*dy*dz;
 
 double ux[nc]; // x component of velocity
 double uy[nc]; // y component of velocity
@@ -76,132 +72,49 @@ double Cn[nc]; //  allocating space for Convection source term in pressure poiss
 double gradxP[nc]; //  allocating space for gradient
 double gradyP[nc]; //  allocating space for gradient
 
-double vertP[ny*nx];
-double hfaceP[nHfc]; //  allocating space for gradient
-double vfaceP[nVfc]; //  allocating space for gradient
-boundaryCondition(ux,uy,p,nxc,nyc,nc);
-//L2-norm
+double vertP[nv];    //  Interpolating pressure at vertices
+double hfaceP[nHfc]; //  Interpolating Pressure at horizontal face center
+double vfaceP[nVfc]; //  Iterpolating Pressure at vertical face center
+
+
+
+//L2-norm- L2 norm at each time step
 double L2ux = 1.0;
 double L2uy = 1.0;
 double L2uz = 1.0;
-double L2p  = 1.0;
 
-//L2-norm
+
+//L2-norm - Initial Correction
 double L2oux = 1.0;
 double L2ouy = 1.0;
 double L2ouz = 1.0;
-double L2op  = 1.0;
-
-//--------------- Predictor step--------------------------------//
- Laplacian(Dnx,ux,nyc,nxc,dx,dy);      //  Dnx Diffusion term
- Laplacian(Dny,uy,nyc,nxc,dx,dy);      //  Dny Diffusion term
- Div(Cnx,ux,ux,uy,nyc,nxc,dx,dy);      //  Cnx Convection term
- Div(Cny,uy,ux,uy,nyc,nxc,dx,dy);      //  Cny Convection term
 
 
-// Parallelizing
-// Initialize MPI: always do this "early"
-MPI_Init(&argc, &argv);
-int rank;
-int size;
+InitializeField(ux,nyc,nxc);
+InitializeField(uy,nyc,nxc);
+InitializeField(uz,nyc,nxc);
+InitializeField(p,nyc,nxc);
 
-MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-MPI_Comm_size(MPI_COMM_WORLD, &size);
-printf("This is process %d of %d total processes\n",rank,size);
+boundaryCondition(ux,uy,p,nxc,nyc,nc);
 
-// collective barrier
-MPI_Barrier(MPI_COMM_WORLD);  // all processor should enter this barrier function // synchrony
-
-// send a "message" from rank 0 to rank 1
-  if(rank==0){
-    int dimension = 3;      // size of message out
-     double *dxdydzout = (double*) 
-      calloc(dimension, sizeof(double));
-
-    
-      dxdydzout[0] = dx;
-      dxdydzout[1] = dy;
-      dxdydzout[2] = dz;
-
-    int dest = 1;
-    int tag = 666;
-    
-    MPI_Request sendRequest;
-    
-    MPI_Isend(dxdydzout, 
-	      dimension,
-	      MPI_DOUBLE,
-	      dest,
-	      tag,
-	      MPI_COMM_WORLD,
-	      &sendRequest);
-
-    // random task
-    int k = 87;
-    for(int j=0;j<10000;++j){
-      k = (k^j)*3;
-    }
-    
-    MPI_Status status;
-    MPI_Wait(&sendRequest, &status);
-
-    free(dxdydzout);
-
-  }
-
-  // recv a "message" from rank 1
-  if(rank==1){
-    int dimension = 3; 
-double *dxdydzin = (double*) 
-      calloc(dimension, sizeof(double));
+InitializeArray(vertP,nv);
+InitializeArray(hfaceP,nHfc);
+InitializeArray(vfaceP,nVfc);
 
 
-    int source = 0;
-    int tag = 666;
-    
-    MPI_Request recvRequest;
-    
-    MPI_Irecv(dxdydzin, 
-	      dimension,
-	      MPI_DOUBLE,
-	      source,
-	      tag,
-	      MPI_COMM_WORLD,
-	      &recvRequest);
-    
-    // random task
-    int k = 99;
-    for(int j=0;j<1000;++j){
-      k = (k^j)*3;
-    }
-    
-    MPI_Status status;
-    MPI_Wait(&recvRequest, &status);
-
-double dx = dxdydzin[0];
-double dy = dxdydzin[1];
-double dz = dxdydzin[2];
-cout<<dx<<endl;
-
-    for(int i=0;i<dimension;++i){
-      printf("dxdydzin[%d] = %4.8f\n",
-	     i, dxdydzin[i]);
-   }
-    
-   free(dxdydzin);
-
-  }
-
-  // tear down MPI (potentially block for all proceses)
-  MPI_Finalize();
+double normux = 1.0;
+double normuy = 1.0;
+double normuz = 1.0;
 
 
+Laplacian(Dnx,ux,nyc,nxc,dx,dy);      //  Dnx Diffusion term
+Laplacian(Dny,uy,nyc,nxc,dx,dy);      //  Dny Diffusion term
+Div(Cnx,ux,ux,uy,nyc,nxc,dx,dy);      //  Cnx Convection term
+Div(Cny,uy,ux,uy,nyc,nxc,dx,dy);      //  Cny Convection term
 
+int k = 1;
 
-/*
-
-int iteration = 1;
-while (iteration < noIteration){
+while (normuy>(1e-6)){
 //--------------Store old values-------------------//
 storeOldValue(ux,uxOld,nc);
 storeOldValue(uy,uyOld,nc);
@@ -222,8 +135,10 @@ storeOldValue(Cny,CnyOld,nc);
  Div(Cny,uy,ux,uy,nyc,nxc,dx,dy);      //  Cny Convection term
 
 
- eulerPredictor(ux,uy,nxc,nyc,dt,dV,Cnx,Cny,Dnx,Dny,Re);
-//adamPredictor(ux,uy,nxc,nyc,dt,dV,Cnx,Cny,Dnx,Dny,CnxOld,CnyOld,DnxOld,DnyOld,Re);
+//eulerPredictor(ux,uy,nxc,nyc,dt,dV,Cnx,Cny,Dnx,Dny,Re);
+adamPredictor(ux,uy,nxc,nyc,dt,dV,Cnx,Cny,Dnx,Dny,CnxOld,CnyOld,DnxOld,DnyOld,Re);
+
+
 
 //--------------Solve poisson eqn for Pressure ---------------//
 Divergence(Cn,ux,uy,nyc,nxc,dx,dy); //  source term in poisson equation
@@ -234,7 +149,13 @@ Poisson(p,nyc,nxc,dx,dy,Cn,nc);
 
 //--------------- Corrector Step ----------------------
 
-gradient(gradxP,gradyP,p,nyc,nxc,dx,dy);
+vertexInterpolate(vertP,p,ny,nx,nxc);
+vfaceInterpolate(vfaceP,vertP,p,nyVfc,nxVfc,nx,nxc);
+hfaceInterpolate(hfaceP,vertP,p,nyHfc,nxHfc,nx,nxc);
+gradient(gradxP,gradyP,vfaceP,hfaceP,nyc,nxc,dx,dy,nxVfc,nxHfc);
+//printmatrix(gradxP,nyc, nxc);
+
+//gradient(gradxP,gradyP,p,nyc,nxc,dx,dy);
 
 corrector(ux,uy,nxc,nyc,dt,gradxP,gradyP);
 
@@ -245,25 +166,31 @@ updateBoundaryCondition(ux,uy,p,nxc,nyc,nc);
 //--------------- Update reference Pressure ----------------------/
 
 refPressure(p,nyc, nxc);
-if(iteration==1){
+if(k==1){
 L2norm(ux,uxOld, &L2oux,nc);
 L2norm(uy,uyOld, &L2ouy,nc);
 L2norm(uz,uzOld, &L2ouz,nc);
-L2norm(p,pOld, &L2op,nc);
-}
 
 L2norm(ux,uxOld, &L2ux,nc);
 L2norm(uy,uyOld, &L2uy,nc);
 L2norm(uz,uzOld, &L2uz,nc);
-L2norm(p,pOld, &L2p,nc);
 
-cout<<endl<<"iteration no:"<<iteration<<"\t"<<"u residual:"<<L2ux/L2oux<<"\t"
-     <<"v residual:"<<L2uy/L2ouy<<"\t"<<"P residual:"<<L2p/L2op<<"\t"<<endl;
-iteration = iteration+1;
+} else {
+L2norm(ux,uxOld, &L2ux,nc);
+L2norm(uy,uyOld, &L2uy,nc);
+L2norm(uz,uzOld, &L2uz,nc);
+
 }
 
+normux = L2ux/L2oux;
+normuy = L2uy/L2ouy;
+normuz = L2uz/L2ouz;
+
+
+cout<<endl<<"Itr:"<<k<<"\t"<<"uRes:"<<normux<<"\t"<<"vRes:"<<normuy<<"\t"<<endl;
+k = k+1;
+}
 printData(ux,uy,p,nxc,nyc);
-*/
 
 return 0;
 //END OF PROGRAM
