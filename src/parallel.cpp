@@ -215,6 +215,30 @@ if(my_rank ==0)
   return 0;
 }
 
+void allocate_arrays()
+  /* ALLOCATE_ARRAYS creates and zeros out the arays U and U_NEW */
+
+{
+  int i;
+  int ndof;
+  ndof = (N+2)*(N+2);
+
+  u = ( double * ) malloc ( ndof * sizeof (double ) );
+
+  for ( i = 0 ; i < ndof; i++)
+  {
+    u[i] = 0.0;
+  }
+
+  u_new = (double * ) malloc ( ndof * sizeof ( double ));
+  for ( i = 0; i< ndof; i++)
+  {
+    u_new[i] = 0.0;
+  }
+  return ;
+}
+
+
 
 
 
