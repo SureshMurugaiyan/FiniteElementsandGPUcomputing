@@ -9,8 +9,8 @@ LIBDIR	=
 #CC	= g++
 #LD	= g++
 
-CC = mpic++ 
-LD = mpic++
+CC = g++
+LD = g++
 
 # compiler flags to be used (set to compile with debugging on)
 CFLAGS = $(addprefix -I, $(HDRDIR)) -O3 -std=c++0x -g3
