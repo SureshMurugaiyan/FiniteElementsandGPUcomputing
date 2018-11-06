@@ -9,8 +9,8 @@ LIBDIR	=
 #CC	= g++
 #LD	= g++
 
-CC = g++
-LD = g++
+CC = mpic++
+LD = mpic++
 
 # compiler flags to be used (set to compile with debugging on)
 CFLAGS = $(addprefix -I, $(HDRDIR)) -O3 -std=c++0x -g3
@@ -31,7 +31,25 @@ LIBS = -lm
 # list of objects to be compiled
 
 OBJS = \
-       src/main.o
+       src/main.o\
+			 src/doNavier.o\
+			 src/doNavierParallel.o\
+	     src/functions.o\
+	     src/functionsParallel.o\
+			 src/finiteVolumeOperators.o\
+			 src/iterateParallel.o\
+			 src/mpiCheck.o\
+       src/parallelSubroutines.o\
+       src/predictorCorrector.o\
+       src/poissonSolverPressure.o\
+       src/printData.o\
+       src/solveParallel.o\
+       src/solveSerial.o\
+       src/timeStep.o\
+
+
+
+
 
 main:$(OBJS) 
 	$(LD)  $(LDFLAGS) -o main $(OBJS) $(LIBS)
