@@ -59,8 +59,8 @@ normPhi = L2Phi/L2oPhi;    // Normalized norm wrt to initial correction
 normPhi = L2Phi;           // Actual norm without normalizing with initial correction
 }
 
-if(normPhi<(1e-5)){stop=1;}
-//if(itr>500){stop=1;}
+//if(normPhi<(1e-5)){stop=1;}
+if(itr>500){stop=1;}
   }
 
 }

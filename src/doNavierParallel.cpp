@@ -66,7 +66,7 @@ double L2oux = 1.0;  //L2-norm - Initial Correction
 double L2ouy = 1.0;
 double L2op  = 1.0;
 
-double normux = L2ux/L2oux; //Normalized L2 norm 
+double normux = L2ux/L2oux; //Normalized L2 norm
 double normuy = L2uy/L2ouy;
 double normp  = L2p/L2op;
 
@@ -98,6 +98,17 @@ double DnyOld[ncGL]; // allocating space for Diffusion term
 double CnxOld[ncGL]; // allocating space for Convection term
 double CnyOld[ncGL]; // allocating space for Convection term
 double dt = 0.0001; // Initializing time step
+
+double sendUx[nycL][nxcL]; // x component of velocity
+double sendUy[nycL][nxcL]; // y component of velocity
+double  sendP[nycL][nxcL];  // Pressure
+
+double GlobalUx[nc]; // x component of velocity
+double GlobalUy[nc]; // y component of velocity
+double  GlobalP[nc];  // Pressure
+double resultUx[nc]; // x component of velocity
+double resultUy[nc]; // x component of velocity
+double resultP[nc]; // x component of velocity
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Initialize all the matrices                                              !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
@@ -152,8 +163,8 @@ storeOldValue(Cny,CnyOld,ncGL);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Predictor                                                                !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-//eulerPredictor(ux,uy,dt,Cnx,Cny,Dnx,Dny,nxcGL,nycGL,dV);
-adamPredictor(ux,uy,dt,Cnx,Cny,Dnx,Dny,CnxOld,CnyOld,DnxOld,DnyOld,nxcGL,nycGL,dV);
+eulerPredictor(ux,uy,dt,Cnx,Cny,Dnx,Dny,nxcGL,nycGL,dV);
+//adamPredictor(ux,uy,dt,Cnx,Cny,Dnx,Dny,CnxOld,CnyOld,DnxOld,DnyOld,nxcGL,nycGL,dV);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Calculation of Source term in Poisson Equation                           !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
@@ -197,6 +208,7 @@ normp = L2p;
 // L2-Norm Calculation-Sum of Norm over all processes                       !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Sum of Norm over all processes
+
 MPI_Allreduce(&normux,&totNormUx,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 MPI_Allreduce(&normuy,&totNormUy,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 MPI_Allreduce(&normp,&totNormP,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
@@ -204,17 +216,53 @@ MPI_Allreduce(&normp,&totNormP,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Stopping Criteria                                                        !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-if(3000<*it){
+if(500<*it){
 *stop = 1;
 }
 if((totNormUx<(nproc*(1e-6))) &&(totNormUy<(nproc*(1e-6)))){
-*stop = 0;
+*stop = 1;
 }
 
-if(*it==15000){
-if(rank==0){
-printData(ux,uy,p,nxcGL,nycGL);
+if(*stop==1){
+
+// Sending Results to task 0
+for(int i=0; i<nxcL;i++){
+  for(int j=0;j<nycL;j++){
+    sendUx[i][j]= ux[(i+1)*nxcGL+(j+1)];
+    sendUy[i][j]= uy[(i+1)*nxcGL+(j+1)];
+    sendP[i][j] =  p[(i+1)*nxcGL+(j+1)];
+  }
 }
+
+ MPI_Gather(&sendUx,ncL,MPI_DOUBLE,&GlobalUx,ncL,MPI_DOUBLE,0,MPI_COMM_WORLD);
+ MPI_Gather(&sendUy,ncL,MPI_DOUBLE,&GlobalUy,ncL,MPI_DOUBLE,0,MPI_COMM_WORLD);
+ MPI_Gather(&sendP ,ncL,MPI_DOUBLE,&GlobalP ,ncL,MPI_DOUBLE,0,MPI_COMM_WORLD);
+
+if(rank==0){
+// we have gathered block by block into Global and is not in correct order
+// Reordering of data before printing
+
+int index =0;
+for(int k=0;k<nprocx;k++){
+  for( int l=0;l<nprocy;l++){
+    for(int i =k*nxcL;i<(k+1)*nxcL;i++){
+      for(int j=l*nycL;j<(l+1)*nycL;j++){
+        resultUx[i*nxc+j]=GlobalUx[index];
+        resultUy[i*nxc+j]=GlobalUy[index];
+         resultP[i*nxc+j]=GlobalP[index];
+        index++;
+      }
+    }
+  }
+}
+
+
+}
+if(rank==0){
+printData(resultUx,resultUy,resultP,nxc,nyc);
+//printData(ux,uy,p,nxcGL,nycGL);
+}
+
 }
 
 

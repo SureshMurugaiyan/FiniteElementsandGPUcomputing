@@ -2,62 +2,76 @@
 #include<stdio.h>
 #include<math.h>
 #include "mpi.h"
+
 #include "input.h"
 #include "inputParallel.h"
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-// Function Declaration
+// Function Declaration                                                     !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-void mpiCheck( int procRank, int totalTasks, int totProc);
-void setcomm( int procRank, int* comm, int totProc,int nchunkx,int nchunky);
-void iterateParallel(int processRank ,int* commMatrix);
-
-
+void InitializeField(double *phi, int row, int col);
+void haloExchange(double* Phi, int* commMatrix, int procRank);
+void updatePhysicalNorthBC(double* uxL,double* uyL,double* pL,int ProcRank);
+void updatePhysicalSouthBC(double* uxL,double* uyL,double* pL,int ProcRank);
+void  updatePhysicalEastBC(double* uxL,double* uyL,double* pL,int ProcRank);
+void  updatePhysicalWestBC(double* uxL,double* uyL,double* pL,int ProcRank);
+void  doNavierParallel(double* uxL,double* uyL,double* pL, int* itrNumber,
+                       int* stopVal,FILE * pFileRank, int rank);
+void printData(double* uxL, double *uyL, double *pL,
+               int col, int row);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Main Function starts here                                                !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-void solveParallel(int argc, char **argv){
+void solveParallel(int rank ,int* comm){
 
-int ntasks;
-int rank;
-double wtime;
-int nfriend =4;  // for 2D we have 4 neighbors
-int comm[nfriend];
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-// MPI Initializations                                                      !
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-MPI_Init(&argc,&argv);
-MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-MPI_Comm_size(MPI_COMM_WORLD, &ntasks);
-wtime = MPI_Wtime();
-mpiCheck( rank, ntasks, nproc);
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-// Figure out neighbors of each chunk                                       !
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-/* Figure out the neighbors of each block */
-if(rank==0){printf(" Setting up the list of neighbors.\n");}
-setcomm(rank,comm,nproc,nprocx,nprocy);
+// Declaration of arrays for storing Primitive Variables
+double uxL[ncGL]; // x component of velocity
+double uyL[ncGL]; // y component of velocity
+double pL[ncGL];  // Pressure
 
-//if(rank==3){printf(" Neighbors of rank 0 are: \nTOP\t%i\tRIGHT\t%i\tBOTTOM\t%i\tLEFT\t%i\t\n",comm[0],comm[1],comm[2],comm[3]);}
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-// Solving in Parallel Mode                                                 !
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-if(rank==0)
-{ printf(" Begin Solving in Parallel Mode.\n");}
-//iterateParallel(rank,comm);
+// Initialization of arrays for storing Primitive Variables
+InitializeField(uxL,nycGL,nxcGL);
+InitializeField(uyL,nycGL,nxcGL);
+InitializeField(pL,nycGL,nxcGL);
 
-// Report Wall time
-wtime=MPI_Wtime()-wtime;
+// Looping Variables
+int itr = 0;
+int stop =0;
 
-printf("Task %i took %6.3f seconds\n",rank, wtime);
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-// Finalize MPI                                                             !
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-/* Terminate MPI */
-MPI_Finalize();
+FILE * FILE1;
 if(rank==0){
-  printf("\n");
-  printf("Normal End of Parallel exectution.\n");
+FILE1 = fopen ("logParallel.txt" , "w");
 }
+
+// Time Marching Loop
+while (stop ==0){
+//while (itr<2001){
+itr++;
+//--------------- Update Ghost layers----------------------------/
+haloExchange(uxL,comm,rank);
+haloExchange(uyL,comm,rank);
+haloExchange(pL,comm,rank);
+//--------------- Update Physical boundary ----------------------/
+updatePhysicalNorthBC(uxL,uyL,pL,rank);
+updatePhysicalSouthBC(uxL,uyL,pL,rank);
+updatePhysicalEastBC(uxL,uyL,pL,rank);
+updatePhysicalWestBC(uxL,uyL,pL,rank);
+
+//--------------- Solve Navier Stokes equation -------------------/
+doNavierParallel(uxL,uyL,pL,&itr,&stop,FILE1,rank);
+
+//--------------- Update Physical boundary ----------------------/
+updatePhysicalNorthBC(uxL,uyL,pL,rank);
+updatePhysicalSouthBC(uxL,uyL,pL,rank);
+updatePhysicalEastBC(uxL,uyL,pL,rank);
+updatePhysicalWestBC(uxL,uyL,pL,rank);
+
+}
+if(rank==0){
+fprintf(FILE1,"Solution converged");
+fclose(FILE1);
+}
+
+//printf("value of cell 1 is %6.3f for rank %d\n",uxL[19],rank);
 
 }
 

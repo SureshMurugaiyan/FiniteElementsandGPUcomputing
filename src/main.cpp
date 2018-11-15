@@ -3,31 +3,59 @@
 |  User Input is input.h File                                                 |
 |  This is the main file of the solver                                        |
 *-----------------------------------------------------------------------------*/
-#include <iostream>
+#include <stdlib.h>
+#include<stdio.h>
+#include<math.h>
+#include "mpi.h"
 #include "input.h"
-using namespace std;
+#include "inputParallel.h"
 /*----------------------------------------------------------------------------*
 |                    Function Declarations                                    |
 *----------------------------------------------------------------------------*/
 void solveSerial();
-void solveParallel(int argc,char **argv);
+void mpiCheck( int procRank, int totalTasks, int totProc);
+void setcomm( int procRank, int* comm, int totProc,int nchunkx,int nchunky);
+void solveParallel(int processRank ,int* commMatrix);
 /*----------------------------------------------------------------------------*
 |                      Main Function                                          |
 *----------------------------------------------------------------------------*/
 int main(int argc, char **argv)
 {
+	//For Parallel Solver
+	int ntasks;
+	int rank;
+	double wtime;
+	int nfriend =4;  // for 2D we have 4 neighbors
+	int comm[nfriend];
+
 switch(Mode){
   case 'S':
-    cout<<"Running in Serial Mode"<<endl;
-    solveSerial();                                    // Calling Serial Solver
-    break;
+	printf(" Begin Solving in Serial Mode.\n");
+    	solveSerial();                                    // Calling Serial Solver
+    	break;
   case 'P':
-    cout<<"Running in Parrallel Mode"<<endl;
-    solveParallel(argc,argv);                       // calling parallel Solver
-    break;
+        //MPI Initializations
+        MPI_Init(&argc,&argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &ntasks);
+	wtime = MPI_Wtime();
+	mpiCheck( rank, ntasks, nproc);
+	//Figure out Friends of each chunk
+	if(rank==0){printf(" Setting up the list of neighbors.\n");}
+	setcomm(rank,comm,nproc,nprocx,nprocy);
+	if(rank==0){printf(" Begin Solving in Parallel Mode.\n");}
+        solveParallel(rank,comm);
+	// Report Wall time
+	wtime=MPI_Wtime()-wtime;
+	printf("Task %i took %6.3f seconds\n",rank, wtime);
+	// Terminate MPI
+	MPI_Finalize();
+	if(rank==0){printf("Normal End of Parallel exectution.\n");}
+	break;
   default :
-    cout<<"Running in Serial Mode"<<endl;
-    solveSerial();
+	printf(" Begin Solving in Serial Mode.\n");
+    	solveSerial();                                    // Calling Serial Solver
+    	break;
 }
 return 0;
 }
