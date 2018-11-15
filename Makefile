@@ -37,7 +37,6 @@ OBJS = \
 	     src/functions.o\
 	     src/functionsParallel.o\
 			 src/finiteVolumeOperators.o\
-			 src/iterateParallel.o\
 			 src/mpiCheck.o\
        src/parallelSubroutines.o\
        src/predictorCorrector.o\
