@@ -177,11 +177,12 @@ PoissonPressure(p,nycGL,nxcGL,dx,dy,Cn,ncGL);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Calculation of pressure gradient                                         !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-//gradient(gradxP,gradyP,p,nycGL,nxcGL,dx,dy);  // Gradient computation using Finite difference-testing
+gradient(gradxP,gradyP,p,nycGL,nxcGL,dx,dy);  // Gradient computation using Finite difference-testing
 vertexInterpolate(vertP,p,nyGL,nxGL,nxcGL);
-vfaceInterpolate(vfaceP,vertP,p,nyVfcGL,nxVfcGL,nxGL,nxcGL);
-hfaceInterpolate(hfaceP,vertP,p,nyHfcGL,nxHfcGL,nxGL,nxcGL);
-gradient(gradxP,gradyP,vfaceP,hfaceP,nycGL,nxcGL,dx,dy,nxVfcGL,nxHfcGL);   // Gradient computation using finite volume
+vfaceInterpolate(vfaceP,vertP,p,nyVfcL,nxVfcL,nxL,nxcL);
+hfaceInterpolate(hfaceP,vertP,p,nyHfcL,nxHfcL,nxL,nxcL);
+//gradient(gradxP,gradyP,vfaceP,hfaceP,nycGL,nxcGL,dx,dy,nxVfcGL,nxHfcGL);   // Gradient computation using finite volume
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Corrector Step                                                           !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!

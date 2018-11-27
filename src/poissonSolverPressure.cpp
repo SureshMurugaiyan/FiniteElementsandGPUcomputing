@@ -12,7 +12,7 @@ void L2norm(double *Phinew, double *Phiold,double *L2Phi,int  totCell);
 void PoissonPressure(double* Phi, int row, int col,
              double delX,double delY,double* source,
              int totCell){
-double lam = 1.4;
+double lam = 1;
 double PhiOld[totCell];
 double normPhi = 1.0;
 double L2Phi = 1.0;
