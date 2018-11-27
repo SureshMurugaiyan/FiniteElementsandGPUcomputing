@@ -92,7 +92,9 @@ double dt = 0.0001; // Initializing time step
 // Initialize all the matrices                                              !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
-
+InitializeField(uxOld,nycG,nxcG);
+InitializeField(uyOld,nycG,nxcG);
+InitializeField(pOld,nycG,nxcG);
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Calculate TimeStep at each iteration based on max velocity at each step  !

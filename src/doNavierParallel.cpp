@@ -112,7 +112,9 @@ double resultP[nc]; // x component of velocity
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Initialize all the matrices                                              !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-
+InitializeField(uxOld,nycGL,nxcGL);
+InitializeField(uyOld,nycGL,nxcGL);
+InitializeField(pOld,nycGL,nxcGL);
 
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
