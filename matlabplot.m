@@ -9,7 +9,7 @@ V = dlmread('uyVelocity.txt');
 
 figure
 colormap(parula(25))
-contourf(X,Y,U,25)
+contourf(X,Y,V,25)
 
 
 % figure
