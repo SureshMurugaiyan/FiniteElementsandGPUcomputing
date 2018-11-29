@@ -136,6 +136,16 @@ if(commMatrix[1]==1){setIn(Phi,1,inE);}
 if(commMatrix[2]==1){setIn(Phi,2,inS);}
 if(commMatrix[3]==1){setIn(Phi,3,inW);}
 
+
+
+free(outN);
+free(outS);
+free(outE);
+free(outW);
+free(inN);
+free(inS);
+free(inE);
+free(inW);
 return;
 }
 
