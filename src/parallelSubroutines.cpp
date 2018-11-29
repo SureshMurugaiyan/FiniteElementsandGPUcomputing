@@ -14,16 +14,35 @@ void setIn(double* Phi,int which ,double* In);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 void haloExchange(double* Phi, int* commMatrix, int procRank){
 
-double outN[nxcL];
-double outE[nycL];
-double outS[nxcL];
-double outW[nycL];
+//double outN[nxcL];
+//double outE[nycL];
+//double outS[nxcL];
+//double outW[nycL];
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+double *outN;
+outN = (double*) malloc(nxcL * sizeof(double));
+double *outE;
+outE = (double*) malloc(nycL * sizeof(double));
+double *outS;
+outS = (double*) malloc(nxcL * sizeof(double));
+double *outW;
+outW = (double*) malloc(nycL * sizeof(double));
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
-double inN[nxcL];
-double inE[nycL];
-double inS[nxcL];
-double inW[nycL];
-
+//double inN[nxcL];
+//double inE[nycL];
+//double inS[nxcL];
+//double inW[nycL];
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+double *inN;
+inN = (double*) malloc(nxcL * sizeof(double));
+double *inE;
+inE = (double*) malloc(nycL * sizeof(double));
+double *inS;
+inS = (double*) malloc(nxcL * sizeof(double));
+double *inW;
+inW = (double*) malloc(nycL * sizeof(double));
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 int partner;
 int tag;
 int nreq = 8;   // No of requests and No of status
@@ -41,7 +60,7 @@ for( int i = 0; i<nreq; i++){
 if(commMatrix[0]==1){
   partner = procRank-nprocx;
   tag=0;
-  MPI_Irecv(&inN,nxcL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[0]);
+  MPI_Irecv(inN,nxcL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[0]);
 }
 
 // Receive From East  Neighbor
@@ -49,7 +68,7 @@ if(commMatrix[0]==1){
 if(commMatrix[1]==1){
    partner = procRank+1;
    tag=1;
-   MPI_Irecv(&inE,nycL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[1]);
+   MPI_Irecv(inE,nycL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[1]);
 }
 
 // Receive From South  Neighbor
@@ -57,7 +76,7 @@ if(commMatrix[1]==1){
 if(commMatrix[2]==1){
    partner = procRank+nprocx;
    tag=2;
-   MPI_Irecv(&inS,nxcL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[2]);
+   MPI_Irecv(inS,nxcL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[2]);
 }
 
 // Receive From West  Neighbor
@@ -65,7 +84,7 @@ if(commMatrix[2]==1){
 if(commMatrix[3]==1){
    partner = procRank-1;
    tag=3;
-   MPI_Irecv(&inW,nycL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[3]);
+   MPI_Irecv(inW,nycL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[3]);
 }
 
 /* SENDING DATA TO GHOST CELLS */
@@ -77,7 +96,7 @@ if(commMatrix[0]==1){
   partner = procRank-nprocx;
   tag=2;
   setOut(outN,Phi,0);
-  MPI_Isend(&outN,nxcL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[4]);
+  MPI_Isend(outN,nxcL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[4]);
 }
 
 // Send East data to West boundary of neighbor
@@ -86,7 +105,7 @@ if(commMatrix[1]==1){
   partner = procRank+1;
   tag=3;
   setOut(outE,Phi,1);
-  MPI_Isend(&outE,nycL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[5]);
+  MPI_Isend(outE,nycL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[5]);
 }
 
 // Send South Data to North boundary of neighbor
@@ -95,7 +114,7 @@ if(commMatrix[2]==1){
   partner = procRank+nprocx;
   tag=0;
   setOut(outS,Phi,2);
-  MPI_Isend(&outS,nxcL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[6]);
+  MPI_Isend(outS,nxcL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[6]);
 }
 
 // Send West Data to East boundary of neighbor
@@ -104,7 +123,7 @@ if(commMatrix[3]==1){
   partner = procRank-1;
   tag=1;
   setOut(outW,Phi,3);
-  MPI_Isend(&outW,nycL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[7]);
+  MPI_Isend(outW,nycL,MPI_DOUBLE,partner,tag,MPI_COMM_WORLD,&requests[7]);
 }
 /* Wait for all communicationst to complete*/
 

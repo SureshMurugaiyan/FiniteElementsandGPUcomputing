@@ -162,6 +162,7 @@ fprintf(FILE1,"2D Navier Stokes Equation Using Finite Volume Method\n");
 fprintf(FILE1,"GRID Size:\t %d \t X %d \n",nxc,nyc);
 fprintf(FILE1,"Time Step for the simulation: %f\n",dt);
 fprintf(FILE1,"Reynolds number of the simulation:%f\n",Re);
+
 }
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Store old values                                                         !
@@ -240,5 +241,24 @@ if((normux<(1e-6)) &&(normuy<(1e-6))){
 // Writing LogFile                                                          !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 fprintf(FILE1,"Iteration no:\t%d\t Ures: \t%.10e\t Vres: \t%.10e\t \n",*it,normux,normuy);
+
+
+free(vertP);
+free(hfaceP);
+free(vfaceP);
+free(Dnx);
+free(Dny);
+free(Cnx);
+free(Cny);
+free(Cn);
+free(gradxP);
+free(gradyP);
+free(uxOld);
+free(uyOld);
+free(pOld);
+free(DnxOld);
+free(DnyOld);
+free(CnxOld);
+free(CnyOld);
 
 }

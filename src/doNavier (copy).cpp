@@ -1,8 +1,6 @@
 #include <iostream>
 #include <math.h>
-#include "mpi.h"
-#include "input.h"
-#include "inputParallel.h"
+#include "inputSerial.h"
 #include <stdio.h>
 using namespace std;
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
@@ -45,14 +43,11 @@ void gradient(double* gradxPhi,double* gradyPhi,
               double* vfacePhi,double* hfacePhi,
 			        int cellRow, int cellCol, double delX, double delY,
               int vfaceCol, int hfaceCol);
-void sendLocal(double* sendPhi,double* PhiL,int col,int row);
-void printData(double* ux, double *uy, double *p,
-               int col, int row);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Main Function                                                            !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
-void doNavierParallel(double* ux,double* uy,double* p, int* it, int* stop,FILE * FILE1,int rank){
+void doNavier(double* ux,double* uy,double* p, int* it, int* stop,FILE * FILE1){
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Variable Declarations                                                    !
@@ -70,121 +65,78 @@ double normux = L2ux/L2oux; //Normalized L2 norm
 double normuy = L2uy/L2ouy;
 double normp  = L2p/L2op;
 
-double totNormUx = 1.0;
-double totNormUy = 1.0;
-double totNormP  = 1.0;
+//double vertP[nvG];    //  Interpolating pressure at vertices
+//double hfaceP[nHfcG]; //  Interpolating Pressure at horizontal face center
+//double vfaceP[nVfcG]; //  Iterpolating Pressure at vertical face center
 
-
-//double vertP[nvGL];    //  Interpolating pressure at vertices
-//double hfaceP[nHfcGL]; //  Interpolating Pressure at horizontal face center
-//double vfaceP[nVfcGL]; //  Iterpolating Pressure at vertical face center
-
-
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 double *vertP;
-vertP = (double*) malloc(nvGL * sizeof(double));
+vertP = (double*) malloc(nvG * sizeof(double));
 double *hfaceP;
-hfaceP = (double*) malloc(nHfcGL * sizeof(double));
+hfaceP = (double*) malloc(nHfcG * sizeof(double));
 double *vfaceP;
-vfaceP = (double*) malloc(nVfcGL * sizeof(double));
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+vfaceP = (double*) malloc(nVfcG * sizeof(double));
 
 // Declaration of arrays for storing Derived Variables
-//double Dnx[ncGL]; // allocating space for Diffusion term
-//double Dny[ncGL]; // allocating space for Diffusion term
-//double Cnx[ncGL]; // allocating space for Convection term
-//double Cny[ncGL]; // allocating space for Convection term
+//double Dnx[ncG]; // allocating space for Diffusion term
+//double Dny[ncG]; // allocating space for Diffusion term
+//double Cnx[ncG]; // allocating space for Convection term
+//double Cny[ncG]; // allocating space for Convection term
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 double *Dnx;
-Dnx = (double*) malloc(ncGL * sizeof(double));
+Dnx = (double*) malloc(ncG * sizeof(double));
 double *Dny;
-Dny = (double*) malloc(ncGL * sizeof(double));
+Dny = (double*) malloc(ncG * sizeof(double));
 double *Cnx;
-Cnx = (double*) malloc(ncGL * sizeof(double));
+Cnx = (double*) malloc(ncG * sizeof(double));
 double *Cny;
-Cny = (double*) malloc(ncGL * sizeof(double));
+Cny = (double*) malloc(ncG * sizeof(double));
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-//double Cn[ncGL];     //  allocating space for Convection source term in pressure poisson
-//double gradxP[ncGL]; //  allocating space for gradient
-//double gradyP[ncGL]; //  allocating space for gradient
+//double Cn[ncG];     //  allocating space for Convection source term in pressure poisson
+//double gradxP[ncG]; //  allocating space for gradient
+//double gradyP[ncG]; //  allocating space for gradient
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 double *Cn;
-Cn = (double*) malloc(ncGL * sizeof(double));
+Cn = (double*) malloc(ncG * sizeof(double));
 double *gradxP;
-gradxP = (double*) malloc(ncGL * sizeof(double));
+gradxP = (double*) malloc(ncG * sizeof(double));
 double *gradyP;
-gradyP = (double*) malloc(ncGL * sizeof(double));
+gradyP = (double*) malloc(ncG * sizeof(double));
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-//double uxOld[ncGL]; // x component of velocity
-//double uyOld[ncGL]; // y component of velocity
-//double pOld[ncGL];  // Pressure
+//double uxOld[ncG]; // x component of velocity
+//double uyOld[ncG]; // y component of velocity
+//double pOld[ncG];  // Pressure
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 double *uxOld;
-uxOld = (double*) malloc(ncGL * sizeof(double));
+uxOld = (double*) malloc(ncG * sizeof(double));
 double *uyOld;
-uyOld = (double*) malloc(ncGL * sizeof(double));
+uyOld = (double*) malloc(ncG * sizeof(double));
 double *pOld;
-pOld = (double*) malloc(ncGL * sizeof(double));
+pOld = (double*) malloc(ncG * sizeof(double));
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-//double DnxOld[ncGL]; // allocating space for Diffusion term
-//double DnyOld[ncGL]; // allocating space for Diffusion term
-//double CnxOld[ncGL]; // allocating space for Convection term
-//double CnyOld[ncGL]; // allocating space for Convection term
+//double DnxOld[ncG]; // allocating space for Diffusion term
+//double DnyOld[ncG]; // allocating space for Diffusion term
+//double CnxOld[ncG]; // allocating space for Convection term
+//double CnyOld[ncG]; // allocating space for Convection term
 double dt = 0.0001; // Initializing time step
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 double *DnxOld;
-DnxOld = (double*) malloc(ncGL * sizeof(double));
+DnxOld = (double*) malloc(ncG * sizeof(double));
 double *DnyOld;
-DnyOld = (double*) malloc(ncGL * sizeof(double));
+DnyOld = (double*) malloc(ncG * sizeof(double));
 double *CnxOld;
-CnxOld = (double*) malloc(ncGL * sizeof(double));
+CnxOld = (double*) malloc(ncG * sizeof(double));
 double *CnyOld;
-CnyOld = (double*) malloc(ncGL * sizeof(double));
+CnyOld = (double*) malloc(ncG * sizeof(double));
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-
-//double sendUx[nycL][nxcL]; // x component of velocity
-//double sendUy[nycL][nxcL]; // y component of velocity
-//double  sendP[nycL][nxcL];  // Pressure
-
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-
-double *sendUx;
-sendUx = (double*) malloc(ncL * sizeof(double));
-double *sendUy;
-sendUy = (double*) malloc(ncL * sizeof(double));
-double *sendP;
-sendP = (double*) malloc(ncL * sizeof(double));
-
-
-
-//double GlobalUx[nc]; // x component of velocity
-//double GlobalUy[nc]; // y component of velocity
-//double GlobalP[nc];  // Pressure
-//double resultUx[nc]; // x component of velocity
-//double resultUy[nc]; // x component of velocity
-//double resultP[nc]; // x component of velocity
-
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-
-double *GlobalUx;
-GlobalUx = (double*) malloc(nc * sizeof(double));
-double *GlobalUy;
-GlobalUy = (double*) malloc(nc * sizeof(double));
-double *GlobalP;
-GlobalP = (double*) malloc(nc * sizeof(double));
-double *resultUx;
-resultUx = (double*) malloc(nc * sizeof(double));
-double *resultUy;
-resultUy = (double*) malloc(nc * sizeof(double));
-double *resultP;
-resultP = (double*) malloc(nc * sizeof(double));
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Initialize all the matrices                                              !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-InitializeField(uxOld,nycGL,nxcGL);
-InitializeField(uyOld,nycGL,nxcGL);
-InitializeField(pOld,nycGL,nxcGL);
+InitializeField(uxOld,nycG,nxcG);
+InitializeField(uyOld,nycG,nxcG);
+InitializeField(pOld,nycG,nxcG);
+
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Calculate TimeStep at each iteration based on max velocity at each step  !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
@@ -196,75 +148,73 @@ timeStep(&dt,ux,uy); // Calculate the actual timeStep
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 if(*it==1){
 // Calculate Laplacian and Divergence term from Initial conditions
-Laplacian(Dnx,ux,nycGL,nxcGL,dx,dy);      //  Dnx Diffusion term
-Laplacian(Dny,uy,nycGL,nxcGL,dx,dy);      //  Dny Diffusion term
-Div(Cnx,ux,ux,uy,nycGL,nxcGL,dx,dy);      //  Cnx Convection term
-Div(Cny,uy,ux,uy,nycGL,nxcGL,dx,dy);      //  Cny Convection term 
-
+Laplacian(Dnx,ux,nycG,nxcG,dx,dy);      //  Dnx Diffusion term
+Laplacian(Dny,uy,nycG,nxcG,dx,dy);      //  Dny Diffusion term
+Div(Cnx,ux,ux,uy,nycG,nxcG,dx,dy);      //  Cnx Convection term
+Div(Cny,uy,ux,uy,nycG,nxcG,dx,dy);      //  Cny Convection term
 // L2 norm for initial correction
-L2norm(ux,uxOld, &L2oux,ncGL);
-L2norm(uy,uyOld, &L2ouy,ncGL);
-L2norm(p,pOld,   &L2op,ncGL);
-if(rank==0){
+L2norm(ux,uxOld, &L2oux,ncG);
+L2norm(uy,uyOld, &L2ouy,ncG);
+L2norm(p,pOld,   &L2op,ncG);
+
 // Write Data= logfile into file
 fprintf(FILE1,"2D Navier Stokes Equation Using Finite Volume Method\n");
 fprintf(FILE1,"GRID Size:\t %d \t X %d \n",nxc,nyc);
 fprintf(FILE1,"Time Step for the simulation: %f\n",dt);
 fprintf(FILE1,"Reynolds number of the simulation:%f\n",Re);
-}
+
 }
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Store old values                                                         !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-storeOldValue(ux,uxOld,ncGL);
-storeOldValue(uy,uyOld,ncGL);
-storeOldValue(p,pOld,ncGL);
+storeOldValue(ux,uxOld,ncG);
+storeOldValue(uy,uyOld,ncG);
+storeOldValue(p,pOld,ncG);
 
-storeOldValue(Dnx,DnxOld,ncGL);
-storeOldValue(Dny,DnyOld,ncGL);
-storeOldValue(Cnx,CnxOld,ncGL);
-storeOldValue(Cny,CnyOld,ncGL);
+storeOldValue(Dnx,DnxOld,ncG);
+storeOldValue(Dny,DnyOld,ncG);
+storeOldValue(Cnx,CnxOld,ncG);
+storeOldValue(Cny,CnyOld,ncG);
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Calculation of Laplacian and Divergence for Predictor step               !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
- Laplacian(Dnx,ux,nycGL,nxcGL,dx,dy);      //  Dnx Diffusion term
- Laplacian(Dny,uy,nycGL,nxcGL,dx,dy);      //  Dny Diffusion term
- Div(Cnx,ux,ux,uy,nycGL,nxcGL,dx,dy);      //  Cnx Convection term
- Div(Cny,uy,ux,uy,nycGL,nxcGL,dx,dy);      //  Cny Convection term
+ Laplacian(Dnx,ux,nycG,nxcG,dx,dy);      //  Dnx Diffusion term
+ Laplacian(Dny,uy,nycG,nxcG,dx,dy);      //  Dny Diffusion term
+ Div(Cnx,ux,ux,uy,nycG,nxcG,dx,dy);      //  Cnx Convection term
+ Div(Cny,uy,ux,uy,nycG,nxcG,dx,dy);      //  Cny Convection term
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Predictor                                                                !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-eulerPredictor(ux,uy,dt,Cnx,Cny,Dnx,Dny,nxcGL,nycGL,dV);
-//adamPredictor(ux,uy,dt,Cnx,Cny,Dnx,Dny,CnxOld,CnyOld,DnxOld,DnyOld,nxcGL,nycGL,dV);
+//eulerPredictor(ux,uy,dt,Cnx,Cny,Dnx,Dny,nxcG,nycG,dV);
+adamPredictor(ux,uy,dt,Cnx,Cny,Dnx,Dny,CnxOld,CnyOld,DnxOld,DnyOld,nxcG,nycG,dV);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Calculation of Source term in Poisson Equation                           !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-Divergence(Cn,ux,uy,nycGL,nxcGL,dx,dy); //  source term in poisson equation
-updateCn(Cn,dt,nxcGL,nycGL);
+Divergence(Cn,ux,uy,nycG,nxcG,dx,dy); //  source term in poisson equation
+updateCn(Cn,dt,nxcG,nycG);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Solver Poisson Equation For Pressure                                     !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-PoissonPressure(p,nycGL,nxcGL,dx,dy,Cn,ncGL);
+PoissonPressure(p,nycG,nxcG,dx,dy,Cn,ncG);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Calculation of pressure gradient                                         !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-gradient(gradxP,gradyP,p,nycGL,nxcGL,dx,dy);  // Gradient computation using Finite difference-testing
-vertexInterpolate(vertP,p,nyGL,nxGL,nxcGL);
-vfaceInterpolate(vfaceP,vertP,p,nyVfcL,nxVfcL,nxL,nxcL);
-hfaceInterpolate(hfaceP,vertP,p,nyHfcL,nxHfcL,nxL,nxcL);
-//gradient(gradxP,gradyP,vfaceP,hfaceP,nycGL,nxcGL,dx,dy,nxVfcGL,nxHfcGL);   // Gradient computation using finite volume
-
+//gradient(gradxP,gradyP,p,nycG,nxcG,dx,dy);  // Gradient computation using Finite difference-testing
+vertexInterpolate(vertP,p,nyG,nxG,nxcG);
+vfaceInterpolate(vfaceP,vertP,p,nyVfcG,nxVfcG,nxG,nxcG);
+hfaceInterpolate(hfaceP,vertP,p,nyHfcG,nxHfcG,nxG,nxcG);
+gradient(gradxP,gradyP,vfaceP,hfaceP,nycG,nxcG,dx,dy,nxVfcG,nxHfcG);   // Gradient computation using finite volume
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Corrector Step                                                           !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-corrector(ux,uy,gradxP,gradyP,dt,nxcGL,nycGL);
+corrector(ux,uy,gradxP,gradyP,dt,nxcG,nycG);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // L2-Norm Calculation                                                      !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-L2norm(ux,uxOld, &L2ux,ncGL);
-L2norm(uy,uyOld, &L2uy,ncGL);
-L2norm(p,pOld, &L2p,ncGL);
+L2norm(ux,uxOld, &L2ux,ncG);
+L2norm(uy,uyOld, &L2uy,ncG);
+L2norm(p,pOld, &L2p,ncG);
 
 int selectNorm = 1;    // choose 0 for normalized and 1 for direct norm
 
@@ -278,76 +228,20 @@ normuy = L2uy;
 normp = L2p;
 }
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-// L2-Norm Calculation-Sum of Norm over all processes                       !
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-// Sum of Norm over all processes
-
-MPI_Allreduce(&normux,&totNormUx,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-MPI_Allreduce(&normuy,&totNormUy,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-MPI_Allreduce(&normp,&totNormP,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Stopping Criteria                                                        !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 if(500<*it){
 *stop = 1;
 }
-if((totNormUx<(nproc*(1e-6))) &&(totNormUy<(nproc*(1e-6)))){
-*stop = 1;
+if((normux<(1e-6)) &&(normuy<(1e-6))){
+*stop = 0;
 }
-
-if(*stop==1){
-
-// Sending Results to task 0
-
-for(int i=0; i<nxcL;i++){
-  for(int j=0;j<nycL;j++){
-    sendUx[i*nxcL+j]= ux[(i+1)*nxcGL+(j+1)];
-    sendUy[i*nxcL+j]= uy[(i+1)*nxcGL+(j+1)];
-    sendP[i*nxcL+j] = p[(i+1)*nxcGL+(j+1)];
-  }
-}
-
-
- MPI_Gather(sendUx,ncL,MPI_DOUBLE,GlobalUx,ncL,MPI_DOUBLE,0,MPI_COMM_WORLD);
- MPI_Gather(sendUy,ncL,MPI_DOUBLE,GlobalUy,ncL,MPI_DOUBLE,0,MPI_COMM_WORLD);
- MPI_Gather(sendP ,ncL,MPI_DOUBLE,GlobalP ,ncL,MPI_DOUBLE,0,MPI_COMM_WORLD);
-
-if(rank==0){
-// we have gathered block by block into Global and is not in correct order
-// Reordering of data before printing
-// This step may not required if we print the varialbles along with coordinates
-
-int index =0;
-for(int k=0;k<nprocx;k++){
-  for( int l=0;l<nprocy;l++){
-    for(int i =k*nxcL;i<(k+1)*nxcL;i++){
-      for(int j=l*nycL;j<(l+1)*nycL;j++){
-        resultUx[i*nxc+j]=GlobalUx[index];
-        resultUy[i*nxc+j]=GlobalUy[index];
-         resultP[i*nxc+j]=GlobalP[index];
-        index++;
-      }
-    }
-  }
-}
-
-
-}
-if(rank==0){
-printData(resultUx,resultUy,resultP,nxc,nyc);
-}
-
-}
-
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Writing LogFile                                                          !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+fprintf(FILE1,"Iteration no:\t%d\t Ures: \t%.10e\t Vres: \t%.10e\t \n",*it,normux,normuy);
 
-if(rank==0){
-fprintf(FILE1,"Iteration no:\t%d\t Ures: \t%.10e\t Vres: \t%.10e\t \n",*it,totNormUx,totNormUy);
-}
 
 free(vertP);
 free(hfaceP);
