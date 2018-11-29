@@ -5,6 +5,7 @@
 *-----------------------------------------------------------------------------*/
 #include <stdio.h>
 #include "inputSerial.h"
+#include <stdlib.h>
 /*----------------------------------------------------------------------------*
 |                    Function Declarations                                    |
 *----------------------------------------------------------------------------*/
@@ -21,10 +22,19 @@ void printData(double* ux, double *uy, double *p,int col, int row);
 void solveSerial(){
 
 // Declaration of arrays for storing Primitive Variables
+/* 
 double ux[ncG]; // x component of velocity
 double uy[ncG]; // y component of velocity
 double p[ncG];  // Pressure
-
+*/
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+double *ux;
+ux = (double*) malloc(ncG * sizeof(double));
+double *uy;
+uy = (double*) malloc(ncG * sizeof(double));
+double *p;
+p = (double*) malloc(ncG * sizeof(double));
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Initialization of arrays for storing Primitive Variables
 InitializeField(ux,nycG,nxcG);
 InitializeField(uy,nycG,nxcG);

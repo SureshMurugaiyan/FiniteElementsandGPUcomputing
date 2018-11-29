@@ -24,9 +24,21 @@ void printData(double* uxL, double *uyL, double *pL,
 void solveParallel(int rank ,int* comm){
 
 // Declaration of arrays for storing Primitive Variables
+/**/
 double uxL[ncGL]; // x component of velocity
 double uyL[ncGL]; // y component of velocity
 double pL[ncGL];  // Pressure
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+/*
+double *uxL;
+uxL = (double*) malloc(ncGL * sizeof(double));
+double *uyL;
+uyL = (double*) malloc(ncGL * sizeof(double));
+double *pL;
+pL = (double*) malloc(ncGL * sizeof(double));
+*/
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
 // Initialization of arrays for storing Primitive Variables
 InitializeField(uxL,nycGL,nxcGL);
