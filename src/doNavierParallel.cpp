@@ -202,9 +202,9 @@ Div(Cnx,ux,ux,uy,nycGL,nxcGL,dx,dy);      //  Cnx Convection term
 Div(Cny,uy,ux,uy,nycGL,nxcGL,dx,dy);      //  Cny Convection term 
 
 // L2 norm for initial correction
-L2norm(ux,uxOld, &L2oux,ncGL);
-L2norm(uy,uyOld, &L2ouy,ncGL);
-L2norm(p,pOld,   &L2op,ncGL);
+//L2norm(ux,uxOld, &L2oux,ncGL);
+//L2norm(uy,uyOld, &L2ouy,ncGL);
+//L2norm(p,pOld,   &L2op,ncGL);
 if(rank==0){
 // Write Data= logfile into file
 fprintf(FILE1,"2D Navier Stokes Equation Using Finite Volume Method\n");
@@ -262,9 +262,9 @@ corrector(ux,uy,gradxP,gradyP,dt,nxcGL,nycGL);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // L2-Norm Calculation                                                      !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-L2norm(ux,uxOld, &L2ux,ncGL);
-L2norm(uy,uyOld, &L2uy,ncGL);
-L2norm(p,pOld, &L2p,ncGL);
+//L2norm(ux,uxOld, &L2ux,ncGL);
+//L2norm(uy,uyOld, &L2uy,ncGL);
+//L2norm(p,pOld, &L2p,ncGL);
 
 int selectNorm = 1;    // choose 0 for normalized and 1 for direct norm
 
@@ -293,7 +293,7 @@ if(500<*it){
 *stop = 1;
 }
 if((totNormUx<(nproc*(1e-6))) &&(totNormUy<(nproc*(1e-6)))){
-*stop = 1;
+*stop = 0;
 }
 
 if(*stop==1){
@@ -346,7 +346,7 @@ printData(resultUx,resultUy,resultP,nxc,nyc);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
 if(rank==0){
-fprintf(FILE1,"Iteration no:\t%d\t Ures: \t%.10e\t Vres: \t%.10e\t \n",*it,totNormUx,totNormUy);
+//fprintf(FILE1,"Iteration no:\t%d\t Ures: \t%.10e\t Vres: \t%.10e\t \n",*it,totNormUx,totNormUy);
 }
 
 free(vertP);

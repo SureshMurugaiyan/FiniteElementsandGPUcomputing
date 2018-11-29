@@ -45,11 +45,11 @@ for(int i=1; i<(row-1); i++){
   }
  }
 if(itr==1){
-  L2norm(Phi,PhiOld, &L2oPhi,totCell);
-  L2norm(Phi,PhiOld, &L2Phi,totCell);
+  //L2norm(Phi,PhiOld, &L2oPhi,totCell);
+ // L2norm(Phi,PhiOld, &L2Phi,totCell);
 
 } else {
-  L2norm(Phi,PhiOld, &L2Phi,totCell);
+ // L2norm(Phi,PhiOld, &L2Phi,totCell);
 }
 
 int selectNorm = 1;        // choose 0 for normalized norm or 1 for actual norm

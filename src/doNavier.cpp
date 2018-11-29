@@ -212,10 +212,11 @@ corrector(ux,uy,gradxP,gradyP,dt,nxcG,nycG);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // L2-Norm Calculation                                                      !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+/*
 L2norm(ux,uxOld, &L2ux,ncG);
 L2norm(uy,uyOld, &L2uy,ncG);
 L2norm(p,pOld, &L2p,ncG);
-
+*/
 int selectNorm = 1;    // choose 0 for normalized and 1 for direct norm
 
 if(selectNorm ==0){
@@ -240,7 +241,7 @@ if((normux<(1e-6)) &&(normuy<(1e-6))){
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Writing LogFile                                                          !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-fprintf(FILE1,"Iteration no:\t%d\t Ures: \t%.10e\t Vres: \t%.10e\t \n",*it,normux,normuy);
+//fprintf(FILE1,"Iteration no:\t%d\t Ures: \t%.10e\t Vres: \t%.10e\t \n",*it,normux,normuy);
 
 
 free(vertP);
