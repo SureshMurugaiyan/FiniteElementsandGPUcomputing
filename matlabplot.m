@@ -1,7 +1,7 @@
 clear all;
 close all;
-Nx = 128;  % Grid size
-Ny = 128;  % Grid size
+Nx = 32;  % Grid size
+Ny = 32;  % Grid size
 X = dlmread('xCellcenter.txt');
 Y = dlmread('yCellcenter.txt');
 U = dlmread('uxVelocity.txt');
@@ -9,8 +9,8 @@ V = dlmread('uyVelocity.txt');
 
 figure
 colormap(parula(25))
-contourf(V,25)
-%contourf(X,Y,V,25)
+% contourf(V,25)
+contourf(X,Y,V,25)
 
 
 % figure
