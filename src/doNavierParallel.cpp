@@ -8,7 +8,7 @@ using namespace std;
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Function Declarations                                                    !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-
+void InitializeField(double *phi, int row, int col);
 void Div(double* Dn, double* Phi, double* U, double* V, int row, int col,double delX,double delY);
 void Laplacian(double* Ln, double *Phi, int row, int col, double delX, double delY);
 void timeStep(double* delt,double* ux,double* uy);
@@ -75,48 +75,116 @@ double totNormUy = 1.0;
 double totNormP  = 1.0;
 
 
-double vertP[nvGL];    //  Interpolating pressure at vertices
-double hfaceP[nHfcGL]; //  Interpolating Pressure at horizontal face center
-double vfaceP[nVfcGL]; //  Iterpolating Pressure at vertical face center
+//double vertP[nvGL];    //  Interpolating pressure at vertices
+//double hfaceP[nHfcGL]; //  Interpolating Pressure at horizontal face center
+//double vfaceP[nVfcGL]; //  Iterpolating Pressure at vertical face center
+
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+double *vertP;
+vertP = (double*) malloc(nvGL * sizeof(double));
+double *hfaceP;
+hfaceP = (double*) malloc(nHfcGL * sizeof(double));
+double *vfaceP;
+vfaceP = (double*) malloc(nVfcGL * sizeof(double));
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
 // Declaration of arrays for storing Derived Variables
-double Dnx[ncGL]; // allocating space for Diffusion term
-double Dny[ncGL]; // allocating space for Diffusion term
-double Cnx[ncGL]; // allocating space for Convection term
-double Cny[ncGL]; // allocating space for Convection term
-
-double Cn[ncGL];     //  allocating space for Convection source term in pressure poisson
-double gradxP[ncGL]; //  allocating space for gradient
-double gradyP[ncGL]; //  allocating space for gradient
-
-double uxOld[ncGL]; // x component of velocity
-double uyOld[ncGL]; // y component of velocity
-double pOld[ncGL];  // Pressure
-
-double DnxOld[ncGL]; // allocating space for Diffusion term
-double DnyOld[ncGL]; // allocating space for Diffusion term
-double CnxOld[ncGL]; // allocating space for Convection term
-double CnyOld[ncGL]; // allocating space for Convection term
+//double Dnx[ncGL]; // allocating space for Diffusion term
+//double Dny[ncGL]; // allocating space for Diffusion term
+//double Cnx[ncGL]; // allocating space for Convection term
+//double Cny[ncGL]; // allocating space for Convection term
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+double *Dnx;
+Dnx = (double*) malloc(ncGL * sizeof(double));
+double *Dny;
+Dny = (double*) malloc(ncGL * sizeof(double));
+double *Cnx;
+Cnx = (double*) malloc(ncGL * sizeof(double));
+double *Cny;
+Cny = (double*) malloc(ncGL * sizeof(double));
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+//double Cn[ncGL];     //  allocating space for Convection source term in pressure poisson
+//double gradxP[ncGL]; //  allocating space for gradient
+//double gradyP[ncGL]; //  allocating space for gradient
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+double *Cn;
+Cn = (double*) malloc(ncGL * sizeof(double));
+double *gradxP;
+gradxP = (double*) malloc(ncGL * sizeof(double));
+double *gradyP;
+gradyP = (double*) malloc(ncGL * sizeof(double));
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+//double uxOld[ncGL]; // x component of velocity
+//double uyOld[ncGL]; // y component of velocity
+//double pOld[ncGL];  // Pressure
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+double *uxOld;
+uxOld = (double*) malloc(ncGL * sizeof(double));
+double *uyOld;
+uyOld = (double*) malloc(ncGL * sizeof(double));
+double *pOld;
+pOld = (double*) malloc(ncGL * sizeof(double));
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+//double DnxOld[ncGL]; // allocating space for Diffusion term
+//double DnyOld[ncGL]; // allocating space for Diffusion term
+//double CnxOld[ncGL]; // allocating space for Convection term
+//double CnyOld[ncGL]; // allocating space for Convection term
 double dt = 0.0001; // Initializing time step
-
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+double *DnxOld;
+DnxOld = (double*) malloc(ncGL * sizeof(double));
+double *DnyOld;
+DnyOld = (double*) malloc(ncGL * sizeof(double));
+double *CnxOld;
+CnxOld = (double*) malloc(ncGL * sizeof(double));
+double *CnyOld;
+CnyOld = (double*) malloc(ncGL * sizeof(double));
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+/*
 double sendUx[nycL][nxcL]; // x component of velocity
 double sendUy[nycL][nxcL]; // y component of velocity
 double  sendP[nycL][nxcL];  // Pressure
+*/
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 
+double *sendUx;
+sendUx = (double*) malloc(ncL * sizeof(double));
+double *sendUy;
+sendUy = (double*) malloc(ncL * sizeof(double));
+double *sendP;
+sendP = (double*) malloc(ncL * sizeof(double));
+
+
+/*
 double GlobalUx[nc]; // x component of velocity
 double GlobalUy[nc]; // y component of velocity
-double  GlobalP[nc];  // Pressure
+double GlobalP[nc];  // Pressure
 double resultUx[nc]; // x component of velocity
 double resultUy[nc]; // x component of velocity
 double resultP[nc]; // x component of velocity
+*/
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+
+double *GlobalUx;
+GlobalUx = (double*) malloc(nc * sizeof(double));
+double *GlobalUy;
+GlobalUy = (double*) malloc(nc * sizeof(double));
+double *GlobalP;
+GlobalP = (double*) malloc(nc * sizeof(double));
+double *resultUx;
+resultUx = (double*) malloc(nc * sizeof(double));
+double *resultUy;
+resultUy = (double*) malloc(nc * sizeof(double));
+double *resultP;
+resultP = (double*) malloc(nc * sizeof(double));
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Initialize all the matrices                                              !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 InitializeField(uxOld,nycGL,nxcGL);
 InitializeField(uyOld,nycGL,nxcGL);
 InitializeField(pOld,nycGL,nxcGL);
-
-
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Calculate TimeStep at each iteration based on max velocity at each step  !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
@@ -229,21 +297,24 @@ if((totNormUx<(nproc*(1e-6))) &&(totNormUy<(nproc*(1e-6)))){
 if(*stop==1){
 
 // Sending Results to task 0
+
 for(int i=0; i<nxcL;i++){
   for(int j=0;j<nycL;j++){
-    sendUx[i][j]= ux[(i+1)*nxcGL+(j+1)];
-    sendUy[i][j]= uy[(i+1)*nxcGL+(j+1)];
-    sendP[i][j] =  p[(i+1)*nxcGL+(j+1)];
+    sendUx[i*nxcL+j]= ux[(i+1)*nxcGL+(j+1)];
+    sendUy[i*nxcL+j]= uy[(i+1)*nxcGL+(j+1)];
+    sendP[i*nxcL+j] = p[(i+1)*nxcGL+(j+1)];
   }
 }
 
- MPI_Gather(&sendUx,ncL,MPI_DOUBLE,&GlobalUx,ncL,MPI_DOUBLE,0,MPI_COMM_WORLD);
- MPI_Gather(&sendUy,ncL,MPI_DOUBLE,&GlobalUy,ncL,MPI_DOUBLE,0,MPI_COMM_WORLD);
- MPI_Gather(&sendP ,ncL,MPI_DOUBLE,&GlobalP ,ncL,MPI_DOUBLE,0,MPI_COMM_WORLD);
+
+ MPI_Gather(sendUx,ncL,MPI_DOUBLE,GlobalUx,ncL,MPI_DOUBLE,0,MPI_COMM_WORLD);
+ MPI_Gather(sendUy,ncL,MPI_DOUBLE,GlobalUy,ncL,MPI_DOUBLE,0,MPI_COMM_WORLD);
+ MPI_Gather(sendP ,ncL,MPI_DOUBLE,GlobalP ,ncL,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
 if(rank==0){
 // we have gathered block by block into Global and is not in correct order
 // Reordering of data before printing
+// This step may not required if we print the varialbles along with coordinates
 
 int index =0;
 for(int k=0;k<nprocx;k++){
@@ -263,7 +334,6 @@ for(int k=0;k<nprocx;k++){
 }
 if(rank==0){
 printData(resultUx,resultUy,resultP,nxc,nyc);
-//printData(ux,uy,p,nxcGL,nycGL);
 }
 
 }

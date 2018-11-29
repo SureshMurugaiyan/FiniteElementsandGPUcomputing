@@ -6,7 +6,7 @@ using namespace std;
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Function Declarations                                                    !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-
+void InitializeField(double *phi, int row, int col);
 void Div(double* Dn, double* Phi, double* U, double* V, int row, int col,double delX,double delY);
 void Laplacian(double* Ln, double *Phi, int row, int col, double delX, double delY);
 void timeStep(double* delt,double* ux,double* uy);
@@ -65,36 +65,77 @@ double normux = L2ux/L2oux; //Normalized L2 norm
 double normuy = L2uy/L2ouy;
 double normp  = L2p/L2op;
 
-double vertP[nvG];    //  Interpolating pressure at vertices
-double hfaceP[nHfcG]; //  Interpolating Pressure at horizontal face center
-double vfaceP[nVfcG]; //  Iterpolating Pressure at vertical face center
+//double vertP[nvG];    //  Interpolating pressure at vertices
+//double hfaceP[nHfcG]; //  Interpolating Pressure at horizontal face center
+//double vfaceP[nVfcG]; //  Iterpolating Pressure at vertical face center
+
+double *vertP;
+vertP = (double*) malloc(nvG * sizeof(double));
+double *hfaceP;
+hfaceP = (double*) malloc(nHfcG * sizeof(double));
+double *vfaceP;
+vfaceP = (double*) malloc(nVfcG * sizeof(double));
 
 // Declaration of arrays for storing Derived Variables
-double Dnx[ncG]; // allocating space for Diffusion term
-double Dny[ncG]; // allocating space for Diffusion term
-double Cnx[ncG]; // allocating space for Convection term
-double Cny[ncG]; // allocating space for Convection term
-
-double Cn[ncG];     //  allocating space for Convection source term in pressure poisson
-double gradxP[ncG]; //  allocating space for gradient
-double gradyP[ncG]; //  allocating space for gradient
-
-double uxOld[ncG]; // x component of velocity
-double uyOld[ncG]; // y component of velocity
-double pOld[ncG];  // Pressure
-
-double DnxOld[ncG]; // allocating space for Diffusion term
-double DnyOld[ncG]; // allocating space for Diffusion term
-double CnxOld[ncG]; // allocating space for Convection term
-double CnyOld[ncG]; // allocating space for Convection term
+//double Dnx[ncG]; // allocating space for Diffusion term
+//double Dny[ncG]; // allocating space for Diffusion term
+//double Cnx[ncG]; // allocating space for Convection term
+//double Cny[ncG]; // allocating space for Convection term
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+double *Dnx;
+Dnx = (double*) malloc(ncG * sizeof(double));
+double *Dny;
+Dny = (double*) malloc(ncG * sizeof(double));
+double *Cnx;
+Cnx = (double*) malloc(ncG * sizeof(double));
+double *Cny;
+Cny = (double*) malloc(ncG * sizeof(double));
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+//double Cn[ncG];     //  allocating space for Convection source term in pressure poisson
+//double gradxP[ncG]; //  allocating space for gradient
+//double gradyP[ncG]; //  allocating space for gradient
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+double *Cn;
+Cn = (double*) malloc(ncG * sizeof(double));
+double *gradxP;
+gradxP = (double*) malloc(ncG * sizeof(double));
+double *gradyP;
+gradyP = (double*) malloc(ncG * sizeof(double));
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+//double uxOld[ncG]; // x component of velocity
+//double uyOld[ncG]; // y component of velocity
+//double pOld[ncG];  // Pressure
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+double *uxOld;
+uxOld = (double*) malloc(ncG * sizeof(double));
+double *uyOld;
+uyOld = (double*) malloc(ncG * sizeof(double));
+double *pOld;
+pOld = (double*) malloc(ncG * sizeof(double));
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+//double DnxOld[ncG]; // allocating space for Diffusion term
+//double DnyOld[ncG]; // allocating space for Diffusion term
+//double CnxOld[ncG]; // allocating space for Convection term
+//double CnyOld[ncG]; // allocating space for Convection term
 double dt = 0.0001; // Initializing time step
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+double *DnxOld;
+DnxOld = (double*) malloc(ncG * sizeof(double));
+double *DnyOld;
+DnyOld = (double*) malloc(ncG * sizeof(double));
+double *CnxOld;
+CnxOld = (double*) malloc(ncG * sizeof(double));
+double *CnyOld;
+CnyOld = (double*) malloc(ncG * sizeof(double));
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Initialize all the matrices                                              !
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
-
 InitializeField(uxOld,nycG,nxcG);
 InitializeField(uyOld,nycG,nxcG);
 InitializeField(pOld,nycG,nxcG);
+
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
 // Calculate TimeStep at each iteration based on max velocity at each step  !
