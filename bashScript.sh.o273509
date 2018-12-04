@@ -1,0 +1,42 @@
+# Compiling the Cpp files: 
+mpic++ -std=c++11 -c -o main.o main.cpp -Wall
+# Compiling the Cpp files: 
+mpic++ -std=c++11 -c -o mesh.o mesh.cpp -Wall
+# Compiling the Cpp files: 
+mpic++ -std=c++11 -c -o doNavierSerial.o doNavierSerial.cpp -Wall
+# Compiling the Cpp files: 
+mpic++ -std=c++11 -c -o functionsParallel.o functionsParallel.cpp -Wall
+# Compiling the Cpp files: 
+mpic++ -std=c++11 -c -o mpiCheck.o mpiCheck.cpp -Wall
+# Compiling the Cpp files: 
+mpic++ -std=c++11 -c -o parallelSubroutines.o parallelSubroutines.cpp -Wall
+# Compiling the Cpp files: 
+mpic++ -std=c++11 -c -o printData.o printData.cpp -Wall
+# Compiling the Cpp files: 
+mpic++ -std=c++11 -c -o solveParallel.o solveParallel.cpp -Wall
+# Compiling the Cpp files: 
+mpic++ -std=c++11 -c -o solveSerial.o solveSerial.cpp -Wall
+# Compiling the Kernel files: 
+#nvcc -c  -std=c++11 CudaOperations.cu
+nvcc -c -arch sm_61 -I/opt/apps/cuda/8.0.61/include -I/opt/apps/gcc5_2/openmpi/1.10.2/include -L/opt/apps/gcc5_2/openmpi/1.10.2/lib -lmpi -L  -std=c++11 doNavierParallel.cu finiteVolumeOperators.cu functions.cu poissonSolverPressure.cu predictorCorrector.cu timeStep.cu 
+# MAKING AND LINKING SUCCESS
+nvcc -arch sm_61 -I/opt/apps/cuda/8.0.61/include -I/opt/apps/gcc5_2/openmpi/1.10.2/include -ccbin mpic++ -Xcompiler -std=c++11 doNavierParallel.o finiteVolumeOperators.o functions.o poissonSolverPressure.o predictorCorrector.o timeStep.o   main.cpp mesh.cpp doNavierSerial.cpp functionsParallel.cpp mpiCheck.cpp parallelSubroutines.cpp printData.cpp solveParallel.cpp solveSerial.cpp   -lcuda -lcudart   -o main
+
+Solving 2D Navier Stokes Eqn in Parallel Mode:
+
+MPI has been set up.
+ Setting up the list of neighbors.
+ Begin Solving in Parallel Mode.
+Iteration no:	1	 Ures: 	0.0000000000e+00	 Vres: 	0.0000000000e+00	 Pres: 	0.0000000000e+00	 
+Iteration no:	2	 Ures: 	0.0000000000e+00	 Vres: 	0.0000000000e+00	 Pres: 	0.0000000000e+00	 
+Iteration no:	3	 Ures: 	0.0000000000e+00	 Vres: 	0.0000000000e+00	 Pres: 	0.0000000000e+00	 
+Iteration no:	4	 Ures: 	0.0000000000e+00	 Vres: 	0.0000000000e+00	 Pres: 	0.0000000000e+00	 
+Iteration no:	5	 Ures: 	0.0000000000e+00	 Vres: 	0.0000000000e+00	 Pres: 	0.0000000000e+00	 
+Iteration no:	6	 Ures: 	0.0000000000e+00	 Vres: 	0.0000000000e+00	 Pres: 	0.0000000000e+00	 
+Iteration no:	7	 Ures: 	0.0000000000e+00	 Vres: 	0.0000000000e+00	 Pres: 	0.0000000000e+00	 
+Iteration no:	8	 Ures: 	0.0000000000e+00	 Vres: 	0.0000000000e+00	 Pres: 	0.0000000000e+00	 
+Iteration no:	9	 Ures: 	0.0000000000e+00	 Vres: 	0.0000000000e+00	 Pres: 	0.0000000000e+00	 
+Iteration no:	10	 Ures: 	0.0000000000e+00	 Vres: 	0.0000000000e+00	 Pres: 	0.0000000000e+00	 
+Each of  4 tasks took  0.027 seconds
+Normal End of Parallel exectution.
+Normal end of script.

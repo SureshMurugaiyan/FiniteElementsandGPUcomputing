@@ -1,5 +1,26 @@
 2D Navier Stokes Equation Using Finite Volume Method
+Solving in parallel mode
+No of Processors:	  0.000 	 X 2 == 	 2
 GRID Size:	 32 	 X 32 
-Time Step for the simulation: 0.010986
 Reynolds number of the simulation:100.000000
+ 	0.0000000000e+00	 
+Iteration no:	1	 Ures: 	-nan	 Vres: 	-nan	 Pres: 	-nan	 
+ 	0.0000000000e+00	 
+Iteration no:	2	 Ures: 	-nan	 Vres: 	-nan	 Pres: 	-nan	 
+ 	0.0000000000e+00	 
+Iteration no:	3	 Ures: 	-nan	 Vres: 	-nan	 Pres: 	-nan	 
+ 	0.0000000000e+00	 
+Iteration no:	4	 Ures: 	-nan	 Vres: 	-nan	 Pres: 	-nan	 
+ 	0.0000000000e+00	 
+Iteration no:	5	 Ures: 	-nan	 Vres: 	-nan	 Pres: 	-nan	 
+ 	0.0000000000e+00	 
+Iteration no:	6	 Ures: 	-nan	 Vres: 	-nan	 Pres: 	-nan	 
+ 	0.0000000000e+00	 
+Iteration no:	7	 Ures: 	-nan	 Vres: 	-nan	 Pres: 	-nan	 
+ 	0.0000000000e+00	 
+Iteration no:	8	 Ures: 	-nan	 Vres: 	-nan	 Pres: 	-nan	 
+ 	0.0000000000e+00	 
+Iteration no:	9	 Ures: 	-nan	 Vres: 	-nan	 Pres: 	-nan	 
+ 	0.0000000000e+00	 
+Iteration no:	10	 Ures: 	-nan	 Vres: 	-nan	 Pres: 	-nan	 
 Solution converged

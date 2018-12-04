@@ -8,6 +8,7 @@
 #include<math.h>
 #include "mpi.h"
 #include "input.h"
+#include "inputSerial.h"
 #include "inputParallel.h"
 /*----------------------------------------------------------------------------*
 |                    Function Declarations                                    |
@@ -16,6 +17,8 @@ void solveSerial();
 void mpiCheck( int procRank, int totalTasks, int totProc);
 void setcomm( int procRank, int* comm, int totProc,int nchunkx,int nchunky);
 void solveParallel(int processRank ,int* commMatrix);
+void mesh2Dsquare(double* XX, double *YY, double *ZZ,
+                  int nxcM, int nycM,int nxM, int nyM, int ncM);
 /*----------------------------------------------------------------------------*
 |                      Main Function                                          |
 *----------------------------------------------------------------------------*/
@@ -27,6 +30,13 @@ int main(int argc, char **argv)
 	double wtime;
 	int nfriend =4;  // for 2D we have 4 neighbors
 	int comm[nfriend];
+
+//double X[nx*ny];
+//double Y[nx*ny];
+//double Z[nx*ny];
+
+//mesh2Dsquare(X,Y,Z,nxc,nyc,nx,ny,nxc*nyc);
+
 
 switch(Mode){
   case 'S':
@@ -45,9 +55,11 @@ switch(Mode){
 	setcomm(rank,comm,nproc,nprocx,nprocy);
 	if(rank==0){printf(" Begin Solving in Parallel Mode.\n");}
         solveParallel(rank,comm);
+
 	// Report Wall time
 	wtime=MPI_Wtime()-wtime;
-	printf("Task %i took %6.3f seconds\n",rank, wtime);
+        if(rank==0){
+	printf("Each of  %d tasks took %6.3f seconds\n",ntasks, wtime);}
 	// Terminate MPI
 	MPI_Finalize();
 	if(rank==0){printf("Normal End of Parallel exectution.\n");}
